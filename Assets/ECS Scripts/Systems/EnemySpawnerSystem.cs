@@ -78,12 +78,16 @@ public partial struct EnemySpawnerSystem : ISystem
             LocalTransform localTransform = LocalTransform.FromPosition(enemySpawner.SpawnPosition);
             ecb.SetComponent(entityInQueryIndex, newEnemy, localTransform);
 
+
             // Lookup the player's transform.
             if (localToWorldLookup.HasComponent(playerEntity))
             {
                 LocalToWorld playerL2W = localToWorldLookup[playerEntity];
                 // You can use playerL2W as needed.
             }
+
+            // Add the EnemyComponent with a desired move speed
+            ecb.AddComponent(entityInQueryIndex, newEnemy, new EnemyComponent { MoveSpeed = 5f });
         }
     }
 }
