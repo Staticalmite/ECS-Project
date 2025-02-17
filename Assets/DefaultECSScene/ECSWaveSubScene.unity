@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 943362538}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -199,9 +199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MoveSpeed: 5
   MaxHealth: 100
-  Damage: 50
-  AttackRadius: 5
-  AttackDelay: 0.5
+  SelectedWeapon: {fileID: 0}
 --- !u!136 &943362534
 CapsuleCollider:
   m_ObjectHideFlags: 0
