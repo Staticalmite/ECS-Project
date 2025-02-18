@@ -91,7 +91,7 @@ public partial struct EnemySpawnerSystem : ISystem
             }
 
             // Add an EnemyComponent to the spawned entity with movement speed
-            ecb.AddComponent(entityInQueryIndex, newEnemy, new EnemyComponent { MoveSpeed = 3.5f , Damage = 0.0f});
+            ecb.AddComponent(entityInQueryIndex, newEnemy, new EnemyComponent { MoveSpeed = 3.5f , Damage = 2.0f});
         }
     }
 }

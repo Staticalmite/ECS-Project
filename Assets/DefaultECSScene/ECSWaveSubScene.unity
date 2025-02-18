@@ -199,7 +199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MoveSpeed: 5
   MaxHealth: 100
-  SelectedWeapon: {fileID: 0}
+  SelectedWeapon: {fileID: 11400000, guid: f8e3c4e2825669a4a9d982c5056bb7f2, type: 2}
 --- !u!136 &943362534
 CapsuleCollider:
   m_ObjectHideFlags: 0
