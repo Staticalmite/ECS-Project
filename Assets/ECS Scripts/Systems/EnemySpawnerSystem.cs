@@ -7,35 +7,46 @@ using Unity.Transforms;
 [BurstCompile]
 public partial struct EnemySpawnerSystem : ISystem
 {
-    // Lookup for player transforms.
+    // Lookup for LocalToWorld component to track player position
     private ComponentLookup<LocalToWorld> localToWorldLookup;
 
     public void OnCreate(ref SystemState state)
     {
-        // Create a read-only lookup for LocalToWorld.
+        // Initialize the lookup for LocalToWorld (read-only)
         localToWorldLookup = state.GetComponentLookup<LocalToWorld>(true);
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        // Update the lookup.
+        // Update the LocalToWorld lookup before use
         localToWorldLookup.Update(ref state);
 
-        // Use an ECB to safely create entities from the job.
+        // Find the player entity (assumes there is only one player entity)
+        Entity playerEntity = Entity.Null; // Default to null if player is not found
+        var playerQuery = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerTag>());
+
+        if (!playerQuery.IsEmpty)
+        {
+            playerEntity = playerQuery.GetSingletonEntity(); // Retrieve the player entity
+        }
+
+        // Create an EntityCommandBuffer for safely modifying entities in a job
         using (var ecb = new EntityCommandBuffer(Allocator.TempJob))
         {
+            // Define the job for updating enemy spawners
             var job = new EnemySpawnerUpdateJob
             {
-                deltaTime = SystemAPI.Time.DeltaTime,
-                localToWorldLookup = localToWorldLookup,
-                ecb = ecb.AsParallelWriter()
+                deltaTime = SystemAPI.Time.DeltaTime, // Pass deltaTime
+                localToWorldLookup = localToWorldLookup, // Pass lookup for player transform
+                ecb = ecb.AsParallelWriter(), // Use ParallelWriter for safe multi-threading
+                playerEntity = playerEntity // Pass the player entity reference
             };
 
-            // Schedule the job to run in parallel.
+            // Schedule the job in parallel, ensuring proper dependency management
             state.Dependency = job.ScheduleParallel(state.Dependency);
-            state.Dependency.Complete();
+            state.Dependency.Complete(); // Ensure the job completes before proceeding
 
-            // Playback the ECB to actually perform the commands.
+            // Apply all recorded entity modifications
             ecb.Playback(state.EntityManager);
         }
     }
@@ -43,51 +54,44 @@ public partial struct EnemySpawnerSystem : ISystem
     [BurstCompile]
     public partial struct EnemySpawnerUpdateJob : IJobEntity
     {
-        public float deltaTime;
-        [ReadOnly] public ComponentLookup<LocalToWorld> localToWorldLookup;
-        public Entity playerEntity;
-        public EntityCommandBuffer.ParallelWriter ecb;
-
-        [BurstCompile]
-        public void OnStartRunning(ref SystemState state)
-        {
-            // Query for the player entity
-            var playerQuery = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerTag>());
-            if (playerQuery.CalculateEntityCount() > 0)
-            {
-                playerEntity = playerQuery.GetSingletonEntity();
-            }
-        }
+        public float deltaTime; // Time since the last frame update
+        [ReadOnly] public ComponentLookup<LocalToWorld> localToWorldLookup; // Read-only lookup for player transform
+        public Entity playerEntity; // Reference to the player entity
+        public EntityCommandBuffer.ParallelWriter ecb; // ECB for parallel entity modifications
 
         public void Execute(Entity entity, [EntityIndexInQuery] int entityInQueryIndex, ref EnemySpawnerComponent enemySpawner)
         {
-            // Increase the timer.
+            // Increase the timer for the spawner
             enemySpawner.Timer += deltaTime;
 
-            // If the spawn delay hasn't been reached, exit early.
+            // If the timer hasn't reached the spawn delay, exit early
             if (enemySpawner.Timer < enemySpawner.SpawnDelay)
                 return;
 
-            // Reset the timer.
+            // Reset the timer after spawning an enemy
             enemySpawner.Timer = 0f;
 
-            // Spawn an enemy using the prefab provided in EnemySpawnerComponent.
+            // Instantiate a new enemy using the prefab stored in the spawner component
             Entity newEnemy = ecb.Instantiate(entityInQueryIndex, enemySpawner.PrefabToSpawn);
 
-            // Build a LocalTransform from the spawn position.
+            // Set the new enemy's position to the spawner's predefined spawn location
             LocalTransform localTransform = LocalTransform.FromPosition(enemySpawner.SpawnPosition);
             ecb.SetComponent(entityInQueryIndex, newEnemy, localTransform);
 
-
-            // Lookup the player's transform.
-            if (localToWorldLookup.HasComponent(playerEntity))
+            // Ensure the player entity exists before accessing its transform
+            if (playerEntity != Entity.Null && localToWorldLookup.HasComponent(playerEntity))
             {
-                LocalToWorld playerL2W = localToWorldLookup[playerEntity];
-                // You can use playerL2W as needed.
+                // Get the player's current world transform (not used yet but can be used for AI movement)
+                if (playerEntity != Entity.Null && localToWorldLookup.HasComponent(playerEntity))
+                {
+                    LocalToWorld playerL2W = localToWorldLookup[playerEntity];
+                }
+
+                // Example: Use playerL2W.Position to direct enemies toward the player
             }
 
-            // Add the EnemyComponent with a desired move speed
-            ecb.AddComponent(entityInQueryIndex, newEnemy, new EnemyComponent { MoveSpeed = 5f });
+            // Add an EnemyComponent to the spawned entity with movement speed
+            ecb.AddComponent(entityInQueryIndex, newEnemy, new EnemyComponent { MoveSpeed = 3.5f , Damage = 0.0f});
         }
     }
 }

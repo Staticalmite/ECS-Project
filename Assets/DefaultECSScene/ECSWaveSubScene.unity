@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PrefabToSpawn: {fileID: 384866794387173697, guid: 51c89cdeca1d8d34ba80aa324481a3a7, type: 3}
-  SpawnDelay: 0.5
+  SpawnDelay: 2.5
 --- !u!4 &89344826
 Transform:
   m_ObjectHideFlags: 0
@@ -285,9 +285,9 @@ Transform:
   m_GameObject: {fileID: 943362532}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0, y: 2.17, z: -10}
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
